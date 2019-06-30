@@ -3,6 +3,7 @@
 
 extern crate panic_halt;
 
+use hifive1::hal::delay::Sleep;
 use hifive1::hal::e310x::Peripherals;
 use hifive1::hal::prelude::*;
 use hifive1::hal::spi::{Spi, MODE_0};
@@ -20,6 +21,16 @@ fn main() -> ! {
 
     // Configure UART for stdout
     hifive1::stdout::configure(p.UART0, gpio.pin17, gpio.pin16, 115_200.bps(), clocks);
+
+    // Configure LED
+    let mut led = gpio.pin19.into_inverted_output();
+    let _ = led.set_low();
+
+    // get the local interrupts struct
+    let clint = p.CLINT.split();
+
+    // get the sleep struct
+    let mut sleep = Sleep::new(clint.mtimecmp, clocks);
 
     // Configure SPI pins
     let mosi = gpio.pin3.into_iof0();
@@ -48,6 +59,10 @@ fn main() -> ! {
         if let Ok(atqa) = mfrc522.reqa() {
             if let Ok(uid) = mfrc522.select(&atqa) {
                 sprintln!("UID: {:?}", uid);
+
+                let _ = led.set_high();
+                sleep.delay_ms(200u32);
+                let _ = led.set_low();
             }
         }
     }
