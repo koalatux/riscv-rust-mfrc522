@@ -10,34 +10,6 @@ use hifive1::sprintln;
 use mfrc522::Mfrc522;
 use riscv_rt::entry;
 
-/*
-struct DummyPin {}
-
-#[allow(deprecated)]
-impl embedded_hal::digital::v1::OutputPin for DummyPin {
-    fn set_low(&mut self) {}
-    fn set_high(&mut self) {}
-}
-*/
-
-struct Error {}
-
-struct CompatPin {
-    pin: e310x_hal::gpio::gpio0::Pin2<
-        e310x_hal::gpio::Output<e310x_hal::gpio::Regular<e310x_hal::gpio::NoInvert>>,
-    >,
-}
-
-#[allow(deprecated)]
-impl embedded_hal::digital::v1::OutputPin for CompatPin {
-    fn set_low(&mut self) {
-        self.pin.set_low();
-    }
-    fn set_high(&mut self) {
-        self.pin.set_high();
-    }
-}
-
 #[entry]
 fn main() -> ! {
     let p = Peripherals::take().unwrap();
@@ -62,8 +34,7 @@ fn main() -> ! {
 
     // Configure MFRC522
     //let pin = DummyPin {};
-    let pin = CompatPin { pin: cs };
-    let mut mfrc522 = Mfrc522::new(spi, pin).unwrap();
+    let mut mfrc522 = Mfrc522::new(spi, cs).unwrap();
 
     sprintln!("starting");
 
