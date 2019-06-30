@@ -40,7 +40,8 @@ fn main() -> ! {
     let miso = gpio.pin4.into_iof0();
     let sck = gpio.pin5.into_iof0();
     //let cs = gpio.pin2.into_iof0();
-    let cs = gpio.pin2.into_output();
+    let mut cs = gpio.pin2.into_output();
+    let _ = cs.set_high();
 
     // Configure SPI
     let pins = (mosi, miso, sck /*cs*/);
