@@ -22,9 +22,12 @@ fn main() -> ! {
     // Configure UART for stdout
     hifive1::stdout::configure(p.UART0, gpio.pin17, gpio.pin16, 115_200.bps(), clocks);
 
-    // Configure LED
-    let mut led = gpio.pin19.into_inverted_output();
-    let _ = led.set_low();
+    // Configure LEDs
+    let (mut red_led, mut green_led, mut blue_led) =
+        hifive1::rgb(gpio.pin22, gpio.pin19, gpio.pin21);
+    let _ = red_led.set_low();
+    let _ = green_led.set_low();
+    let _ = blue_led.set_low();
 
     // get the local interrupts struct
     let clint = p.CLINT.split();
@@ -53,16 +56,19 @@ fn main() -> ! {
 
     sprintln!("VERSION: 0x{:x}", vers);
 
-    assert!(vers == 0x91 || vers == 0x92);
+    if vers != 0x91 || vers != 0x92 {
+        let _ = red_led.set_high();
+        panic!();
+    }
 
     loop {
         if let Ok(atqa) = mfrc522.reqa() {
             if let Ok(uid) = mfrc522.select(&atqa) {
                 sprintln!("UID: {:?}", uid);
 
-                let _ = led.set_high();
+                let _ = green_led.set_high();
                 sleep.delay_ms(200u32);
-                let _ = led.set_low();
+                let _ = green_led.set_low();
             }
         }
     }
